@@ -1,0 +1,96 @@
+version: "2.4"
+services:
+  nginx:
+    image: "nginx:latest"
+    
+    container_name: "nginx"
+    restart: always     
+    volumes:     
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ persistent_container_directory }}/nginx/web/:/usr/share/nginx/html"
+      - "{{ persistent_container_directory }}/nginx/config/:/etc/nginx/conf.d"
+      - "{{ persistent_container_directory }}/nginx/log:/var/log/nginx/"
+    ports:
+      - "8080:80"     
+    networks:
+      nginx_proxy:
+
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+    
+    environment:    
+      - discovery.type=single-node
+      - cluster.name=my-elasticsearch-cluster
+      - network.host=0.0.0.0
+      - bootstrap.memory_lock=true        
+    volumes:
+      - "{{ persistent_container_directory }}/elasticsearch:/usr/share/elasticsearch/data"
+    ports:
+      - "9200:9200"
+      - "9300:9300" 
+    networks:
+      - nginx_proxy
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.9.2
+     
+    environment:    
+      - server.name=kibana
+      - SERVER_HOST=0
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false          
+    ports:
+      - "5601:5601"
+    networks:
+      - nginx_proxy
+    depends_on:
+      - elasticsearch
+
+
+    
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.11.0
+        
+    volumes:
+      - "{{ persistent_container_directory }}/logstash/pipeline:/usr/share/logstash/pipeline"
+    environment:    
+      - http.host: "0.0.0.0"
+      - xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+      - xpack.monitoring.enabled: true          
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    expose: 
+      - "5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - nginx_proxy
+    depends_on:
+      - elasticsearch
+
+
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.3.2
+
+    volumes:
+      - "{{ persistent_container_directory }}/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml"
+      - "{{ persistent_container_directory }}/nginx/log:/var/log/nginx"
+    entrypoint: "filebeat -e -strict.perms=false"      
+    networks:
+      - nginx_proxy
+    depends_on:       
+      - nginx
+      - logstash
+      - elasticsearch
+      - kibana
+    links: 
+      - logstash
+
+      
+      
+networks:
+  nginx_proxy:
+    driver: bridge

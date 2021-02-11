@@ -1,0 +1,13 @@
+---
+- hosts: oci-instances
+  vars:
+    install_portainer: false
+    
+  roles:
+    - role: ansible-docker-engine
+    - role: ansible-swapfile
+    - role: ansible-docker-containers
+      become: true
+    - role: ansible-docker-container-portainer
+      when: install_portainer | bool
+     
