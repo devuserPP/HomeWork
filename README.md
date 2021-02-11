@@ -1,49 +1,10 @@
-Variables
+Instructions
 =========
+Please create a compute instance in the cloud of your choice (OCI, AWS, Azure or GCP)
+Install web server of your choice in docker image and run it on that instance. Webserver should serve “hello world” web page on port 8080.
+Change default webserver log directory using chef or ansible.
+Hook up grafana or other monitoring tool to monitor the webserver.
+Automate provisioning and installation using terraform and chef or ansible.
 
-Most types of Oracle Cloud Infrastructure resources have an Oracle-assigned unique ID called an Oracle Cloud Identifier (OCID). It's included as part of the resource's information in both the Console and API.
-
-Check the documentation to see how can you extract this values from your account: https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm
-
-tenancy_ocid = ""
-
-compartment_ocid = ""
-
-
-And for authentication objects: https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm
-
-private_key_path = ""
-
-user_ocid = ""
-
-fingerprint = ""
-
-Execution
-=========
-
-1.- ```terraform init```
-
-2.- Take terraform.tfvars file in the repo and fill it with your own data
-
-3.- ```terraform plan```
-
-4.- ```terraform apply```
-
-5.- ```ansible-playbook -i inventory install-docker.yml```
-
-6.- OPTIONAL to install  with portainer, execute:
-
-```
-ansible-playbook -i inventory install-docker.yml -e install_portainer=true
-```
-
-Troubleshooting
-=========
-### terraform:
-```TF_LOG=DEBUG terraform apply  ```
-
-#### ssh:
-```ssh -i  oci-instances-ssh-key.pem ubuntu@<your-public-ip>```
-
-#### Ansible:
-```ansible-playbook -v -i inventory install-docker.yml```
+Bonus:
+configure your webserver to send logs to cloud logging (AWS CloudWatch, OCI Logging etc…)
