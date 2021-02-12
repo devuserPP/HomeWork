@@ -23,7 +23,7 @@ Execution
 
 1.- ```terraform init```
 
-2.- Take terraform.tfvars file in the repo and fill it with your own data
+2.- Take [terraform.tfvars](/terraform.tfvars) file in the repo and fill it with your own data
 
 3.- ```terraform plan```
 
